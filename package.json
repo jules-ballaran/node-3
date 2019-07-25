@@ -6,9 +6,13 @@
   "scripts": {
     "db:start": "docker-compose up -d db",
     "db:stop": "docker-compose down",
+    "migrate": "node-pg-migrate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {}
+  "dependencies": {
+    "node-pg-migrate": "^3.21.1",
+    "pg": "^7.11.0"
+  }
 }
