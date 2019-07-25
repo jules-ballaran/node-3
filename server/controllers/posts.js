@@ -19,12 +19,28 @@ module.exports = {
 		const db = req.app.get('db')
 		const { comments } = req.query
 
-		db.posts
+		if(comments){
+			db.posts
 			.findOne(req.params.id)
-			.then(post => res.status(200).json(post))
+			.then(post => {
+				db.comments
+					.find({postId: req.params.id})
+					.then(comment => {
+						post.comments = comment
+						res.status(200).json(post)
+					})
+			})
 			.catch(err => {
 				res.status(500).end()
 			})
+		} else {
+			db.posts
+				.findOne(req.params.id)
+				.then(post => res.status(200).json(post))
+				.catch(err => {
+					res.status(500).end()
+				})
+		}
 	},
 	list: (req, res) => {
 		const db = req.app.get('db')
