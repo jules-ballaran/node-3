@@ -1,27 +1,68 @@
+const argon2 = require('argon2')
+const jwt = require('jsonwebtoken')
+const secret = require('../../secret.js')
+
 module.exports = {
 	create: (req, res) => {
 		const db = req.app.get('db')
+		const { email, password } = req.body
 
+		argon2
+			.hash(password)
+			.then(hash => {
+				return db.users.insert(
+					{
+						email,
+						password: hash,
+					}, 
+					{
+						fields: ['id', 'email']
+					}
+				)
+			})
+			.then(user => {
+				const token = jwt.sign({ userId: user.id}, secret)
+				res.status(201).json({...user, token})
+			})
+			.catch(err => {
+				console.error(err)
+				res.status(500).end()
+			})
+	},
+	login: (req, res) => {
+		const db = req.app.get('db')
 		const { email, password } = req.body
 
 		db.users
-			.insert({
-				email,
-				password,
-				user_profiles: [
-					{
-						userId: undefined,
-						about: null,
-						thumbnail: null,
+			.findOne(
+				{
+					email,
+				},
+				{
+					fields: ['id', 'email', 'password'],
+				}
+			)
+			.then(user => {
+				if(!user) {
+					throw new Error('Invalid email')
+				}
+				return argon2.verify(user.password, password).then(valid => {
+					if(!valid){
+						throw new Error('Incorrect password')
 					}
-				]
-			},
-			{
-				deepInsert: true,
+
+					const token = jwt.sign({ userId: user.id }, secret)
+					delete user.password
+					res.status(200).json({...user, token })
+				})
 			})
-			.then(user => res.status(201).json(user))
 			.catch(err => {
-				console.error(err)
+				if(['Invalid username', 'Incorrect password'].includes(err.message)){
+					res.status(400).json({ error: err.message })
+				} else {
+					console.error(err)
+					res.status(500).end()
+				}
 			})
 	},
 	list: (req, res) => {
