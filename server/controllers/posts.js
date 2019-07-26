@@ -44,9 +44,8 @@ module.exports = {
 	},
 	list: (req, res) => {
 		const db = req.app.get('db')
-
 		db.posts
-			.find()
+			.find(req.params.userId)
 			.then(posts => res.status(200).json(posts))
 			.catch(err => {
 				res.status(500).end()

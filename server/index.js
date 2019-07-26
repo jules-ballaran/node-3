@@ -23,7 +23,7 @@ massive({
 
 	app.post('/api/posts', posts.create)
 	app.get('/api/posts/:id', posts.view)
-	app.get('/api/posts', posts.list)
+	app.get('/api/posts/:userId', posts.list)
 	app.put('/api/posts/:id', posts.update)
 
 	app.post('/api/comments', comments.create)
